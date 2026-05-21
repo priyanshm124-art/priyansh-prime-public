@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Priyansh Prime - Elite Botanical Workspace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <style>
+        /* ==========================================================================
+           1. PREMIUM BOTANICAL DARK THEME DEFINITION
+           ========================================================================== */
+        :root {
+            --bg-dark: #06090e;
+            --bg-card: rgba(13, 18, 28, 0.75);
+            --border-color: rgba(56, 74, 108, 0.35);
+            --border-hover: rgba(180, 151, 255, 0.5);
+            --text-main: #cbd5e1;
+            --text-bright: #f8fafc;
+            --text-muted: #64748b;
+            --accent-lavender: #b497ff;
+            --accent-rose: #f472b6;
+            --accent-mint: #34d399;
+            --accent-gold: #fbbf24;
+            --transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .floral-glow {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -2;
+            filter: blur(100px);
+            opacity: 0.05;
+        }
+        #glow-1 { top: -10%; right: -10%; background: var(--accent-lavender); }
+        #glow-2 { bottom: 10%; left: -10%; background: var(--accent-rose); }
+        #glow-3 { top: 50%; right: 20%; background: var(--accent-mint); }
+
+        @media (min-width: 768px) {
+            .floral-glow { width: 700px; height: 700px; filter: blur(160px); }
+        }
+
+        #petal-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        @media (min-width: 768px) { .container { padding: 0 2rem; } }
+
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.7);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        @media (min-width: 768px) { .glass-card { padding: 2.25rem; margin-bottom: 0; } }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--border-hover);
+            box-shadow: 0 25px 50px -15px rgba(180, 151, 255, 0.12);
+        }
+
+        input[type="text"], input[type="number"], select, textarea {
+            background: rgba(6, 9, 14, 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.85rem 1.25rem;
+            color: var(--text-bright);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-lavender);
+            box-shadow: 0 0 15px rgba(180, 151, 255, 0.15);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent-lavender), var(--accent-rose));
+            color: #06090e;
+            font-weight: 600;
+            padding: 0.85rem 2rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.95rem;
+            gap: 0.5rem;
+            width: 100%;
+        }
+        @media (min-width: 768px) { .btn { width: auto; } }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(180, 151, 255, 0.3);
+            opacity: 0.95;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-bright);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.09);
+            border-color: var(--text-main);
+        }
+
+        .btn-danger {
+            background: rgba(244, 114, 182, 0.1);
+            color: var(--accent-rose);
+            border: 1px solid rgba(244, 114, 182, 0.2);
+        }
+        .btn-danger:hover { background: var(--accent-rose); color: #06090e; }
+
+        section { padding: 5rem 0 1rem 0; }
+        @media (min-width: 768px) { section { padding: 6.5rem 0 2rem 0; } }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin-bottom: 2rem;
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+        @media (min-width: 768px) { .section-title { font-size: 2.75rem; margin-bottom: 3.5rem; } }
+        .section-title span { color: var(--accent-lavender); }
+        .section-title::after {
+            content: " ⚜ ✿ ⚜ ";
+            display: block;
+            font-size: 1rem;
+            color: var(--accent-rose);
+            margin-top: 0.5rem;
+            opacity: 0.5;
+            letter-spacing: 4px;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(6, 9, 14, 0.85);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0.5rem 1rem; }
+        @media (min-width: 768px) { .navbar { flex-direction: row; justify-content: space-between; height: 80px; padding: 0 2rem; } }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            margin-bottom: 0.5rem;
+        }
+        @media (min-width: 768px) { .logo { margin-bottom: 0; font-size: 1.6rem; } }
+        .logo span { color: var(--accent-lavender); }
+
+        .nav-links { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; justify-content: center; }
+        @media (min-width: 768px) { .nav-links { gap: 2.25rem; } }
+        .nav-links a {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: var(--transition);
+            text-decoration: none;
+        }
+        @media (min-width: 768px) { .nav-links a { font-size: 0.95rem; } }
+        .nav-links a:hover, .nav-links a.active { color: var(--text-bright); }
+
+        #hero { min-height: 80vh; display: flex; align-items: center; justify-content: center; text-align: center; padding-top: 100px; }
+
+        .hero-content h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+        }
+        @media (min-width: 768px) { .hero-content h1 { font-size: 4.2rem; line-height: 1.15; } }
+        .hero-content h1 span { background: linear-gradient(135deg, var(--accent-lavender), var(--accent-rose)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .hero-content p { font-size: 1rem; max-width: 700px; margin: 0 auto 2rem auto; color: var(--text-main); opacity: 0.85; }
+        @media (min-width: 768px) { .hero-content p { font-size: 1.2rem; margin-bottom: 3rem; } }
+
+        .growth-badge-cluster {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(180, 151, 255, 0.05);
+            border: 1px solid rgba(180, 151, 255, 0.15);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            margin-bottom: 1.5rem;
+            width: 100%;
+            max-width: 320px;
+        }
+        @media (min-width: 768px) { .growth-badge-cluster { padding: 1rem 2rem; margin-bottom: 2rem; max-width: none; width: auto; } }
+
+        .badge-main-line { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 0.9rem; color: var(--accent-lavender); flex-wrap: wrap; justify-content: center; }
+        @media (min-width: 768px) { .badge-main-line { font-size: 1.05rem; gap: 0.75rem; } }
+
+        .xp-mini-track { width: 140px; height: 6px; background: rgba(6, 9, 14, 0.8); border-radius: 3px; margin-top: 0.5rem; overflow: hidden; }
+        @media (min-width: 768px) { .xp-mini-track { width: 160px; } }
+        .xp-mini-fill { height: 100%; background: linear-gradient(90deg, var(--accent-lavender), var(--accent-rose)); width: 0%; transition: var(--transition); }
+
+        .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+        @media (min-width: 768px) { .dashboard-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; } }
+
+        .stat-card { text-align: center; }
+        .stat-card h3 { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.3rem; }
+        .stat-card p { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px; }
+        .stat-number { font-size: 2rem; font-weight: 700; color: var(--text-bright); font-family: 'Playfair Display', serif; }
+        @media (min-width: 768px) { .stat-number { font-size: 2.5rem; } }
+
+        .input-group-mini {
+            display: flex; gap: 0.5rem; align-items: center; justify-content: center; margin-top: 0.5rem;
+        }
+        .input-group-mini input {
+            max-width: 70px; text-align: center; padding: 0.3rem; font-size: 0.85rem;
+        }
+
+        /* Goal Feedback Styling */
+        .goal-feedback-badge {
+            margin-top: 5px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        .status-not-started { background: rgba(244, 114, 182, 0.1); color: var(--accent-rose); }
+        .status-halfway { background: rgba(251, 191, 36, 0.1); color: var(--accent-gold); }
+        .status-almost { background: rgba(180, 151, 255, 0.1); color: var(--accent-lavender); }
+        .status-achieved { background: rgba(52, 211, 153, 0.1); color: var(--accent-mint); box-shadow: 0 0 10px rgba(52, 211, 153, 0.2); }
+
+        /* Analytics Tab System */
+        .analytics-tabs {
+            display: flex; gap: 0.5rem; margin-bottom: 1rem; justify-content: center;
+        }
+        .analytics-tabs button {
+            background: rgba(6, 9, 14, 0.6); border: 1px solid var(--border-color); color: var(--text-muted); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: var(--transition);
+        }
+        .analytics-tabs button.active {
+            background: rgba(180, 151, 255, 0.15); border-color: var(--accent-lavender); color: var(--accent-lavender);
+        }
+
+        .graph-container {
+            margin-top: 1.5rem;
+            background: rgba(6, 9, 14, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+        .graph-title { font-size: 0.95rem; font-weight: 600; color: var(--text-bright); margin-bottom: 1.25rem; text-align: center; }
+        
+        .graph-frame {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 180px;
+            padding-top: 25px;
+            border-bottom: 2px solid var(--border-color);
+            gap: 5px;
+        }
+        .graph-bar-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            height: 100%;
+            justify-content: flex-end;
+        }
+        .graph-bar {
+            width: 100%;
+            max-width: 35px;
+            background: linear-gradient(to top, var(--accent-lavender), var(--accent-rose));
+            border-radius: 6px 6px 0 0;
+            height: 0%; 
+            transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .graph-bar-value {
+            position: absolute;
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: var(--text-bright);
+            font-family: monospace;
+            white-space: nowrap;
+        }
+        .graph-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 8px; text-align: center; }
+
+        .history-log-box {
+            max-height: 250px;
+            overflow-y: auto;
+            background: rgba(6, 9, 14, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            display: none;
+        }
+        .history-item {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 0.6rem 0;
+            font-size: 0.85rem;
+        }
+        .history-item-top { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
+
+        .pomo-panel { display: grid; grid-template-columns: 1fr; gap: 1.5rem; align-items: center; }
+        @media (min-width: 992px) { .pomo-panel { grid-template-columns: 1.2fr 0.8fr; gap: 3rem; } }
+
+        .timer-face { font-size: 3.5rem; font-weight: 700; text-align: center; font-family: monospace; color: var(--text-bright); margin: 0.5rem 0; text-shadow: 0 0 30px rgba(180, 151, 255, 0.25); }
+        @media (min-width: 768px) { .timer-face { font-size: 5.5rem; margin: 1rem 0; } }
+
+        .timer-custom-input {
+            display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem;
+        }
+        .timer-custom-input input {
+            max-width: 110px; text-align: center; font-family: monospace; font-size: 1.1rem; padding: 0.5rem;
+        }
+
+        .workspace-single-column { max-width: 850px; margin: 0 auto; }
+        @media (min-width: 768px) { .workspace-single-column { margin: 0 auto 3rem auto; } }
+
+        .workspace-title-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(56, 74, 108, 0.2); padding-bottom: 0.5rem; }
+        .workspace-title-area h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--text-bright); }
+        @media (min-width: 768px) { .workspace-title-area h3 { font-size: 1.5rem; } }
+
+        .todo-input-row { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
+        @media(min-width: 768px) { .todo-input-row { display: grid; grid-template-columns: 1.5fr 1fr auto; } }
+
+        .completion-tracker-bar { background: rgba(6, 9, 14, 0.6); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; }
+        @media (min-width: 768px) { .completion-tracker-bar { padding: 1.25rem 1.5rem; margin-bottom: 2rem; } }
+        
+        .tracker-header-metrics { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .tracker-headline { font-size: 0.8rem; font-weight: 600; color: var(--text-bright); }
+        @media (min-width: 768px) { .tracker-headline { font-size: 0.9rem; } }
+        .tracker-percentage { font-size: 1.1rem; font-weight: 700; color: var(--accent-mint); font-family: monospace; }
+        
+        .tracker-rail { height: 10px; background: #0c121d; border-radius: 5px; overflow: hidden; }
+        .tracker-fill-progress { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent-lavender), var(--accent-mint)); transition: width 0.4s ease; }
+
+        .item-list-container { display: flex; flex-direction: column; gap: 0.85rem; max-height: 450px; overflow-y: auto; }
+
+        .task-card-node { display: flex; flex-direction: column; gap: 0.75rem; align-items: flex-start; background: rgba(6, 9, 14, 0.4); border: 1px solid var(--border-color); padding: 1rem; border-radius: 12px; transition: var(--transition); }
+        @media (min-width: 600px) { .task-card-node { flex-direction: row; justify-content: space-between; align-items: center; } }
+        .task-card-node.completed span { text-decoration: line-through; color: var(--text-muted); }
+
+        .type-badge { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 20px; font-weight: 600; margin-right: 0.5rem; display: inline-block; margin-bottom: 0.25rem; }
+        @media (min-width: 768px) { .type-badge { font-size: 0.75rem; padding: 0.2rem 0.6rem; margin-right: 0.75rem; margin-bottom: 0; } }
+        .badge-academic { background: rgba(180, 151, 255, 0.15); color: var(--accent-lavender); border: 1px solid rgba(180, 151, 255, 0.2); }
+        .badge-personal { background: rgba(244, 114, 182, 0.15); color: var(--accent-rose); border: 1px solid rgba(244, 114, 182, 0.2); }
+
+        .node-actions { display: flex; gap: 0.5rem; align-items: center; width: 100%; justify-content: flex-end; }
+        @media (min-width: 600px) { .node-actions { width: auto; } }
+        
+        .node-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 0.4rem 0.85rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: var(--transition); }
+        .node-btn-check:hover { border-color: var(--accent-mint); color: var(--accent-mint); background: rgba(52, 211, 153, 0.05); }
+        .node-btn-delete:hover { border-color: var(--accent-rose); color: var(--accent-rose); background: rgba(244, 114, 182, 0.05); }
+
+        .analytics-dashboard { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        @media (min-width: 992px) { .analytics-dashboard { grid-template-columns: 1.1fr 0.9fr; gap: 2.5rem; margin-bottom: 3rem; } }
+
+        .chart-micro-row { margin: 1.25rem 0; }
+        .chart-meta { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.5rem; }
+        .chart-track { height: 10px; background: rgba(6, 9, 14, 0.8); border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; }
+        .chart-fill { height: 100%; background: linear-gradient(90deg, var(--accent-lavender), var(--accent-rose)); width: 0%; transition: width 0.6s ease; }
+        #fill-rev { background: linear-gradient(90deg, var(--accent-mint), #10b981); }
+        #fill-write { background: linear-gradient(90deg, #f472b6, #db2777); }
+
+        .habit-pill-grid { display: flex; flex-direction: column; gap: 0.85rem; }
+        .habit-pill-item { display: flex; justify-content: space-between; align-items: center; background: rgba(6, 9, 14, 0.3); border: 1px solid var(--border-color); padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.9rem; }
+        .toggle-trigger-circle { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border-color); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; transition: var(--transition); color: transparent; flex-shrink: 0; }
+        .toggle-trigger-circle.checked { background: var(--accent-mint); border-color: var(--accent-mint); color: #06090e; }
+
+        .reflection-section {
+            margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;
+        }
+
+        .backup-panel { background: rgba(6, 9, 14, 0.5); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; margin-top: 1.5rem; }
+        @media (min-width: 768px) { .backup-panel { padding: 1.5rem; margin-top: 2rem; } }
+
+        footer { text-align: center; padding: 2rem 0; border-top: 1px solid var(--border-color); margin-top: 3rem; font-size: 0.85rem; color: var(--text-muted); }
+        @media (min-width: 768px) { footer { padding: 3rem 0; margin-top: 5rem; font-size: 0.95rem; } }
+        footer a { color: var(--accent-lavender); text-decoration: none; font-weight: 600; transition: var(--transition); }
+        footer a:hover { color: var(--accent-rose); text-shadow: 0 0 10px rgba(244, 114, 182, 0.4); }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+
+        /* ==========================================================================
+           PREMIUM PROFILE CORNER MORPHISM STYLING
+           ========================================================================== */
+        .profile-dropdown-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            padding: 0.4rem 0.85rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .profile-trigger:hover {
+            border-color: var(--border-hover);
+            background: rgba(180, 151, 255, 0.05);
+        }
+
+        .profile-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid var(--accent-lavender);
+            background: var(--bg-dark);
+        }
+
+        .profile-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-bright);
+            max-width: 110px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dropdown-chevron {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            transition: transform 0.3s ease;
+        }
+
+        /* Dropdown Menu Container */
+        .profile-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 0;
+            width: 230px;
+            background: rgba(13, 18, 28, 0.95);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+            z-index: 2000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 0.5rem 0;
+        }
+
+        .profile-dropdown-menu.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .dropdown-header {
+            padding: 0.5rem 1.25rem 0.25rem 1.25rem;
+        }
+
+        .dropdown-email {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 0.5rem 0;
+            opacity: 0.6;
+        }
+
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: 0.6rem 1.25rem;
+            font-size: 0.85rem;
+            color: var(--text-main) !important;
+            text-decoration: none;
+            text-align: left;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            box-sizing: border-box;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(180, 151, 255, 0.08);
+            color: var(--text-bright) !important;
+            padding-left: 1.5rem;
+        }
+
+        .logout-item {
+            color: var(--accent-rose) !important;
+        }
+
+        .logout-item:hover {
+            background: rgba(244, 114, 182, 0.1);
+            color: var(--accent-rose) !important;
+        }
+
+        /* Mobile Profile Layout Adjustments */
+        @media (max-width: 767px) {
+            .navbar {
+                gap: 0.75rem;
+                padding: 0.75rem 1rem;
+            }
+            .nav-links {
+                width: 100%;
+                justify-content: center;
+                gap: 0.6rem;
+            }
+            .profile-dropdown-container {
+                margin-top: 0.25rem;
+                width: 100%;
+                max-width: 280px;
+            }
+            .profile-trigger {
+                justify-content: space-between;
+                width: 100%;
+            }
+            .profile-dropdown-menu {
+                right: 50%;
+                transform: translateX(50%) translateY(-10px);
+                width: 100%;
+                max-width: 280px;
+            }
+            .profile-dropdown-menu.active {
+                transform: translateX(50%) translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="petal-canvas"></canvas>
+
+    <div class="floral-glow" id="glow-1"></div>
+    <div class="floral-glow" id="glow-2"></div>
+    <div class="floral-glow" id="glow-3"></div>
+
+    <header>
+        <div class="container navbar">
+            <a href="#hero" class="logo">☘ Priyansh<span>Prime</span></a>
+            <nav class="nav-links">
+                <a href="#hero" class="nav-link active">Home / होम</a>
+                <a href="#dashboard" class="nav-link">Focus / फोकस</a>
+                <a href="#workspaces" class="nav-link">Workspace / कार्यक्षेत्र</a>
+                <a href="#analytics" class="nav-link">Analytics / विश्लेषण</a>
+
+                <div class="profile-dropdown-container">
+                    <div class="profile-trigger" id="profileTrigger">
+                        <img src="https://via.placeholder.com/150" alt="User Profile" id="userProfilePic" class="profile-avatar">
+                        <span id="userDisplayName" class="profile-name">Verifying...</span>
+                        <span class="dropdown-chevron">▼</span>
+                    </div>
+                    <div class="profile-dropdown-menu" id="profileDropdown">
+                        <div class="dropdown-header">
+                            <p id="dropdownUserEmail" class="dropdown-email">user@example.com</p>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="#hero" class="dropdown-item">⚜ Profile / प्रोफाइल</a>
+                        <a href="#workspaces" class="dropdown-item">📈 Progress / प्रगति</a>
+                        <a href="#analytics" class="dropdown-item">⚙ Settings / सेटिंग्स</a>
+                        <div class="dropdown-divider"></div>
+                        <button id="btn-firebase-logout" class="dropdown-item logout-item">🚪 Logout / लॉगआउट</button>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <section id="hero" class="container">
+        <div class="hero-content">
+            <div class="growth-badge-cluster">
+                <div class="badge-main-line">
+                    <span id="txt-flower-rank">🌱 Sprout Status / अंकुर अवस्था</span>
+                    <span style="opacity:0.3;" class="hidden-xs">|</span>
+                    <span>Level / स्तर <span id="lbl-level">1</span></span>
+                </div>
+                <div class="xp-mini-track">
+                    <div class="xp-mini-fill" id="fill-xp-mini"></div>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.4rem;">
+                    <span id="lbl-xp-raw">0</span> / 100 XP To Bloom / खिलने के लिए
+                </div>
+            </div>
+            <h1>Aesthetic Space for <span>High Achievers</span></h1>
+            <p id="lbl-live-date" style="font-family: monospace; color: var(--accent-rose); font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem;"></p>
+            <p>सफलता के लिए अपने दैनिक लक्ष्यों को व्यवस्थित करें और ध्यान केंद्रित करें।<br>Organize your daily targets and sharpen your deep study blocks seamlessly.</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-direction: column; width: 100%; max-width: 300px; margin: 0 auto;">
+                <a href="#dashboard" class="btn">Start Timer / टाइमर शुरू करें</a>
+                <a href="#workspaces" class="btn btn-secondary">Open Log / लॉग खोलें</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="dashboard" class="container">
+        <h2 class="section-title">Focus & Metric <span>Engine / इंजन</span></h2>
+
+        <div class="dashboard-grid">
+            <div class="glass-card stat-card">
+                <h3>Total Focus Time</h3>
+                <p>कुल पढ़ाई का समय</p>
+                <div class="stat-number" id="lbl-dash-hours">0.0h</div>
+                <div class="input-group-mini" style="flex-direction: column; gap: 2px; margin-top: 8px;">
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Ideal Target / आदर्श लक्ष्य</span>
+                    <div style="display: flex; gap: 4px; align-items: center;">
+                        <input type="number" step="0.5" min="0.5" id="ipt-ideal-target" value="4" style="max-width: 60px; padding: 2px 5px;">
+                        <span style="font-size:0.8rem; color:var(--text-muted)">hrs</span>
+                        <button class="node-btn" id="btn-save-ideal" style="padding: 2px 6px; font-size: 0.75rem;">Set</button>
+                    </div>
+                </div>
+                <div id="lbl-goal-status" class="goal-feedback-badge status-not-started">❌ Goal Not Started Yet</div>
+            </div>
+            <div class="glass-card stat-card">
+                <h3>Workout Session</h3>
+                <p>व्यायाम का समय</p>
+                <div class="stat-number" id="lbl-dash-workout">0.0h</div>
+                <div class="input-group-mini">
+                    <input type="number" step="0.5" min="0" id="ipt-workout-hours" value="0">
+                    <button class="node-btn" id="btn-save-workout">Save</button>
+                </div>
+            </div>
+            <div class="glass-card stat-card">
+                <h3>Sleep Duration</h3>
+                <p>नींद का समय</p>
+                <div class="stat-number" id="lbl-dash-sleep">0.0h</div>
+                <div class="input-group-mini">
+                    <input type="number" step="0.5" min="0" id="ipt-sleep-hours" value="0">
+                    <button class="node-btn" id="btn-save-sleep">Save</button>
+                </div>
+            </div>
+            <div class="glass-card stat-card">
+                <h3>Goals Progress</h3>
+                <p>पूरे किए गए लक्ष्य</p>
+                <div class="stat-number" id="lbl-dash-daily-ratio">0/0</div>
+                <p id="lbl-dash-completion-rate" style="color:var(--accent-mint); font-weight:600; margin-top:5px;">0% Complete</p>
+            </div>
+        </div>
+
+        <div class="glass-card pomo-panel">
+            <div>
+                <div class="timer-custom-input">
+                    <label style="font-size:0.9rem; color:var(--text-bright);" for="ipt-custom-minutes">Set Minutes / मिनट सेट करें:</label>
+                    <input type="number" id="ipt-custom-minutes" min="1" max="180" value="25">
+                    <button class="node-btn" id="btn-apply-custom-time" style="padding:0.5rem 1rem;">Set / सेट करें</button>
+                </div>
+                
+                <div class="timer-face" id="lbl-timer-clock">25:00</div>
+
+                <div class="mode-selector-box">
+                    <label for="sel-focus-mode">Select Task Category / श्रेणी चुनें</label>
+                    <select id="sel-focus-mode">
+                        <option value="study">🎓 Deep Study Work / गहन अध्ययन</option>
+                        <option value="revision">🔄 System Revision / पाठ्यक्रम दोहराना</option>
+                        <option value="writing">✍ Creative Writing & Projects / लेखन कार्य</option>
+                    </select>
+                </div>
+
+                <div style="display:flex; flex-direction: column; gap:0.75rem; margin-bottom: 1rem;">
+                    <button class="btn" id="btn-timer-toggle">Start Focus / शुरू करें</button>
+                    <button class="btn btn-secondary" id="btn-timer-reset">Reset / रीसेट</button>
+                </div>
+            </div>
+
+            <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 0.5rem;">
+                <h4 style="font-family:'Playfair Display', serif; font-size:1.2rem; margin-bottom:0.5rem; color:var(--text-bright);">Daily Philosophy / दर्शन</h4>
+                <p style="font-style:italic; font-size:0.9rem; color:var(--text-main);">"अनुशासन ही आपके सपनों को वास्तविकता में बदलता है। आपके आज के छोटे कदम कल की बड़ी सफलता तय करेंगे।"</p>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-top: 5px;">"Discipline turns intent into action. Your small continuous steps build massive achievements."</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="workspaces" class="container">
+        <h2 class="section-title">Everyday <span>Task Log / दैनिक लक्ष्य</span></h2>
+
+        <div class="glass-card workspace-single-column">
+            <div class="workspace-title-area">
+                <h3>Today's Target Board / आज की कार्यसूची</h3>
+                <span style="font-size:0.8rem; color:var(--accent-rose); font-weight:600;">LIVE TRACKER</span>
+            </div>
+            
+            <div class="completion-tracker-bar">
+                <div class="tracker-header-metrics">
+                    <span class="tracker-headline">✿ Completion Rate / सफलता दर</span>
+                    <span class="tracker-percentage" id="lbl-bar-pct">0%</span>
+                </div>
+                <div class="tracker-rail">
+                    <div class="tracker-fill-progress" id="fill-tracker-live"></div>
+                </div>
+            </div>
+            
+            <div class="todo-input-row">
+                <input type="text" id="ipt-daily" placeholder="Enter task... / नया काम यहाँ लिखें...">
+                <select id="sel-task-type">
+                    <option value="academic">🎓 Academic Goal / पढ़ाई-लिखाई</option>
+                    <option value="personal">🌿 Personal Goal / व्यक्तिगत काम</option>
+                </select>
+                <button class="btn" id="btn-add-daily">Add / जोड़ें</button>
+            </div>
+            
+            <div class="item-list-container" id="box-daily-list"></div>
+
+            <div class="reflection-section" style="border-top: 1px solid var(--border-color); padding-top:1.5rem; margin-top:1.5rem;">
+                <h4 style="color:var(--text-bright); font-family:'Playfair Display', serif;">Thought Reflection / आत्म-चिंतन डायरी</h4>
+                <div>
+                    <label style="font-size:0.8rem; color:var(--text-muted);">DAILY REFLECTION / आज का अनुभव</label>
+                    <textarea id="txt-daily-reflection" rows="2" placeholder="Write what you learned today... / आज आपने क्या सीखा या सुधारा..."></textarea>
+                    <button class="node-btn" id="btn-save-daily-ref" style="margin-top:0.5rem; background:rgba(180,151,255,0.1);">Save Daily Reflection</button>
+                </div>
+                <div style="margin-top:0.5rem;">
+                    <label style="font-size:0.8rem; color:var(--text-muted);">WEEKLY REFLECTION / साप्ताहिक समीक्षा</label>
+                    <textarea id="txt-weekly-reflection" rows="2" placeholder="Summarize this week's progress... / इस पूरे हफ्ते का अनुभव लिखें..."></textarea>
+                    <button class="node-btn" id="btn-save-weekly-ref" style="margin-top:0.5rem; background:rgba(244,114,182,0.1);">Save Weekly Reflection</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="analytics" class="container">
+        <h2 class="section-title">System <span>Analytics / ट्रैकिंग डेटा</span></h2>
+
+        <div class="analytics-dashboard">
+            <div class="glass-card">
+                <h3>Performance Analytics / performance tracking</h3>
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">Different intervals comparison chart.</p>
+                
+                <div class="analytics-tabs">
+                    <button id="tab-weekly" class="active">Weekly (Sun-Sat)</button>
+                    <button id="tab-monthly">Monthly</button>
+                    <button id="tab-lifetime">Lifetime</button>
+                </div>
+
+                <div class="graph-container">
+                    <div class="graph-title" id="lbl-graph-title">📊 Weekly Overview (Focus Hours)</div>
+                    <div class="graph-frame" id="box-analytics-graph"></div>
+                </div>
+                
+                <button class="btn btn-secondary" id="btn-toggle-history" style="margin-top: 1.5rem; font-size: 0.8rem; padding: 0.5rem 1rem;">📜 View Past Archived History Logs</button>
+                <div class="history-log-box" id="box-history-list"></div>
+            </div>
+
+            <div class="glass-card">
+                <h3>Time Categories & Habits</h3>
+                
+                <div class="chart-micro-row">
+                    <div class="chart-meta"><span>🎓 Deep Study / adhyayan</span><span id="lbl-time-study">0 mins</span></div>
+                    <div class="chart-track"><div class="chart-fill" id="fill-study"></div></div>
+                </div>
+                <div class="chart-micro-row">
+                    <div class="chart-meta"><span>🔄 Revision / dohrana</span><span id="lbl-time-rev">0 mins</span></div>
+                    <div class="chart-track"><div class="chart-fill" id="fill-rev"></div></div>
+                </div>
+                <div class="chart-micro-row">
+                    <div class="chart-meta"><span>✍ Writing & Tasks / lekhan</span><span id="lbl-time-write">0 mins</span></div>
+                    <div class="chart-track"><div class="chart-fill" id="fill-write"></div></div>
+                </div>
+
+                <h3 style="margin-top: 2rem; margin-bottom: 1rem; font-size:1.1rem;">Core Habits Index / mool aadatein</h3>
+                <div class="habit-pill-grid">
+                    <div class="habit-pill-item">
+                        <span>Hydration & Sunlight / paani aur dhoop</span>
+                        <div class="toggle-trigger-circle" data-habit="h1">✓</div>
+                    </div>
+                    <div class="habit-pill-item">
+                        <span>Read 10 Pages / 10 panne padhna</span>
+                        <div class="toggle-trigger-circle" data-habit="h2">✓</div>
+                    </div>
+                    <div class="habit-pill-item">
+                        <span>Review Mistakes / galtiyan dekhna</span>
+                        <div class="toggle-trigger-circle" data-habit="h3">✓</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card" style="max-width: 850px; margin: 0 auto;">
+            <h3>Data Management / data suraksha</h3>
+            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1.25rem;">Your data remains stored on your device local profile database safely.</p>
+            <div class="backup-panel">
+                <div style="display:flex; gap:1rem; align-items:center; justify-content:space-between; flex-direction: column;">
+                    <button class="btn btn-secondary" id="btn-copy-backup">📋 Copy Backup Code</button>
+                    <button class="btn btn-danger" id="btn-wipe-data">Clear Dashboard / data saaf karein</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Priyansh Prime. Cultivate consistency, master execution.</p>
+            <p style="margin-top: 10px; font-size: 0.9rem; color: var(--text-main);">
+                Created by <strong>Priyansh Mishra</strong> | Instagram: 
+                <a href="https://www.instagram.com/priyansh.mishra.17/?hl=en" target="_blank">@priyansh.mishra.17</a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // ==========================================================================
+        // FIREBASE INITIALIZATION & SECURITY ROUTER
+        // ==========================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9U0gcJRv3w98T3EpeCIa_C33wB7geoDE",
+            authDomain: "priyansh-prime.firebaseapp.com",
+            projectId: "priyansh-prime",
+            storageBucket: "priyansh-prime.firebasestorage.app",
+            messagingSenderId: "796799214423",
+            appId: "1:796799214423:web:378872a71f95c9fcadd412",
+            measurementId: "G-L950V4VB22"
+        };
+
+        // Re-initialize inside separate tracker instance workspace
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Security session observer redirect logic
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                // If token credentials don't exist, boot immediately back to index landing page
+                window.location.href = 'index.html';
+            } else {
+                // Map out live payload elements gracefully onto template corner tokens
+                document.getElementById('userDisplayName').textContent = user.displayName || "Elite User";
+                document.getElementById('dropdownUserEmail').textContent = user.email || "No email connected";
+                if (user.photoURL) {
+                    document.getElementById('userProfilePic').src = user.photoURL;
+                }
+            }
+        });
+
+        // Dropdown Click Engine Handling
+        const profileTrigger = document.getElementById('profileTrigger');
+        const profileDropdown = document.getElementById('profileDropdown');
+        const logoutBtn = document.getElementById('btn-firebase-logout');
+
+        profileTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('active');
+            const chevron = profileTrigger.querySelector('.dropdown-chevron');
+            chevron.style.transform = profileDropdown.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0deg)';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!profileDropdown.contains(e.target) && !profileTrigger.contains(e.target)) {
+                profileDropdown.classList.remove('active');
+                profileTrigger.querySelector('.dropdown-chevron').style.transform = 'rotate(0deg)';
+            }
+        });
+
+        // Terminate Session Signout Trigger Logic
+        logoutBtn.addEventListener('click', () => {
+            auth.signOut().then(() => {
+                window.location.href = 'index.html';
+            }).catch((err) => {
+                console.error("Logout runtime tracking error encountered:", err);
+            });
+        });
+
+        // Automatic Date, Week & Structural Computation Utility
+        function fetchSystemDateDetails() {
+            const current = new Date();
+            const year = current.getFullYear();
+            const month = String(current.getMonth() + 1).padStart(2, '0');
+            const day = String(current.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            
+            const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const dayName = daysOfWeek[current.getDay()];
+            
+            const target = new Date(current.valueOf());
+            const dayNr = (current.getDay() + 6) % 7;
+            target.setDate(target.getDate() - dayNr + 3);
+            const firstThursday = target.valueOf();
+            target.setMonth(0, 1);
+            if (target.getDay() !== 4) {
+                target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+            }
+            const weekNumber = 1 + Math.ceil((firstThursday - target) / 604800000);
+            
+            return {
+                dateString: formattedDate,
+                weekString: `W${weekNumber}-${year}`,
+                monthString: `${year}-${month}`,
+                dayName: dayName,
+                readable: current.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })
+            };
+        }
+
+        const sysTime = fetchSystemDateDetails();
+
+        // Database Definition Setup V6
+        let db = {
+            dailyTasks: JSON.parse(localStorage.getItem('prime_daily_v6')) || [],
+            habits: JSON.parse(localStorage.getItem('prime_habits_v6')) || { h1:false, h2:false, h3:false },
+            xp: parseInt(localStorage.getItem('prime_xp_v6')) || 0,
+            level: parseInt(localStorage.getItem('prime_level_v6')) || 1,
+            timeAllocations: JSON.parse(localStorage.getItem('prime_allocations_v6')) || { study:0, revision:0, writing:0 },
+            workoutHours: parseFloat(localStorage.getItem('prime_workout_v6')) || 0.0,
+            sleepHours: parseFloat(localStorage.getItem('prime_sleep_v6')) || 0.0,
+            idealStudyTarget: parseFloat(localStorage.getItem('prime_ideal_target_v6')) || 4.0, 
+            dailyReflection: localStorage.getItem('prime_daily_ref_v6') || "",
+            weeklyReflection: localStorage.getItem('prime_weekly_ref_v6') || "",
+            
+            weeklyDaysRecord: JSON.parse(localStorage.getItem('prime_weekly_days_v6')) || {}, 
+            monthlyRecord: JSON.parse(localStorage.getItem('prime_monthly_v6')) || {},       
+            lifetimeRecord: JSON.parse(localStorage.getItem('prime_lifetime_v6')) || {},     
+            
+            lastActiveDate: localStorage.getItem('prime_last_date_v6') || sysTime.dateString
+        };
+
+        let currentActiveTab = 'weekly';
+
+        // Day-Change Automation Engine
+        if (db.lastActiveDate !== sysTime.dateString) {
+            const oldDate = db.lastActiveDate;
+            const focusHours = parseFloat(((db.timeAllocations.study + db.timeAllocations.revision + db.timeAllocations.writing) / 3600).toFixed(2));
+            
+            const dayArchiveLog = {
+                date: oldDate,
+                focusHours: focusHours,
+                workoutHours: db.workoutHours,
+                sleepHours: db.sleepHours,
+                tasksDone: db.dailyTasks.filter(t => t.completed).length,
+                tasksTotal: db.dailyTasks.length,
+                reflection: db.dailyReflection
+            };
+
+            const parseParts = oldDate.split('-');
+            const oldDateObj = new Date(parseParts, parseParts-1, parseParts);
+            const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const oldDayName = daysOfWeek[oldDateObj.getDay()];
+            
+            const target = new Date(oldDateObj.valueOf());
+            const dayNr = (oldDateObj.getDay() + 6) % 7;
+            target.setDate(target.getDate() - dayNr + 3);
+            const oldWeekNumber = 1 + Math.ceil((target.valueOf() - target.setMonth(0,1)) / 604800000); 
+            const oldWeekKey = `W${oldWeekNumber}-${parseParts}`;
+            const oldMonthKey = `${parseParts}-${parseParts}`;
+
+            if(!db.weeklyDaysRecord[oldWeekKey]) db.weeklyDaysRecord[oldWeekKey] = {};
+            db.weeklyDaysRecord[oldWeekKey][oldDayName] = focusHours;
+
+            db.monthlyRecord[oldMonthKey] = (db.monthlyRecord[oldMonthKey] || 0) + focusHours;
+            db.lifetimeRecord[oldDate] = dayArchiveLog;
+
+            db.dailyTasks = [];
+            db.habits = { h1:false, h2:false, h3:false };
+            db.timeAllocations = { study:0, revision:0, writing:0 };
+            db.workoutHours = 0.0;
+            db.sleepHours = 0.0;
+            db.dailyReflection = "";
+            
+            if(sysTime.dayName === 'Sunday') {
+                db.weeklyReflection = "";
+            }
+
+            db.lastActiveDate = sysTime.dateString;
+            localStorage.setItem('prime_last_date_v6', sysTime.dateString);
+            commitToLocalStorage();
+        }
+
+        // Element Selectors Map Interface
+        const iptDaily = document.getElementById('ipt-daily');
+        const selTaskType = document.getElementById('sel-task-type');
+        const btnAddDaily = document.getElementById('btn-add-daily');
+        const boxDailyList = document.getElementById('box-daily-list');
+        const lblDashHours = document.getElementById('lbl-dash-hours');
+        const lblDashWorkout = document.getElementById('lbl-dash-workout');
+        const lblDashSleep = document.getElementById('lbl-dash-sleep');
+        const lblDashCompletionRate = document.getElementById('lbl-dash-completion-rate');
+        const lblDashDailyRatio = document.getElementById('lbl-dash-daily-ratio');
+        const lblLevel = document.getElementById('lbl-level');
+        const lblXpRaw = document.getElementById('lbl-xp-raw');
+        const fillXpMini = document.getElementById('fill-xp-mini');
+        const txtFlowerRank = document.getElementById('txt-flower-rank');
+        const lblBarPct = document.getElementById('lbl-bar-pct');
+        const fillTrackerLive = document.getElementById('fill-tracker-live');
+        const lblTimeStudy = document.getElementById('lbl-time-study');
+        const lblTimeRev = document.getElementById('lbl-time-rev');
+        const lblTimeWrite = document.getElementById('lbl-time-write');
+        const fillStudy = document.getElementById('fill-study');
+        const fillRev = document.getElementById('fill-rev');
+        const fillWrite = document.getElementById('fill-write');
+        const selFocusMode = document.getElementById('sel-focus-mode');
+        const lblLiveDate = document.getElementById('lbl-live-date');
+        
+        const iptWorkoutHours = document.getElementById('ipt-workout-hours');
+        const btnSaveWorkout = document.getElementById('btn-save-workout');
+        const iptSleepHours = document.getElementById('ipt-sleep-hours');
+        const btnSaveSleep = document.getElementById('btn-save-sleep');
+
+        const txtDailyReflection = document.getElementById('txt-daily-reflection');
+        const txtWeeklyReflection = document.getElementById('txt-weekly-reflection');
+
+        const iptIdealTarget = document.getElementById('ipt-ideal-target');
+        const btnSaveIdeal = document.getElementById('btn-save-ideal');
+        const lblGoalStatus = document.getElementById('lbl-goal-status');
+
+        // Document Initialization State
+        document.addEventListener('DOMContentLoaded', () => {
+            lblLiveDate.textContent = `📅 ${sysTime.readable} | ${sysTime.dayName} | ${sysTime.weekString}`;
+            
+            txtDailyReflection.value = db.dailyReflection;
+            txtWeeklyReflection.value = db.weeklyReflection;
+            iptIdealTarget.value = db.idealStudyTarget;
+            
+            initFloraCanvas();
+            syncStateToDisplay();
+            initializeTimerSystem();
+            configureHabitTriggers();
+            setupBackupUtility();
+            setupScrollSpy();
+            setupTabsSystem();
+            renderAnalyticsGraph();
+        });
+
+        function commitToLocalStorage() {
+            localStorage.setItem('prime_daily_v6', JSON.stringify(db.dailyTasks));
+            localStorage.setItem('prime_habits_v6', JSON.stringify(db.habits));
+            localStorage.setItem('prime_xp_v6', db.xp);
+            localStorage.setItem('prime_level_v6', db.level);
+            localStorage.setItem('prime_allocations_v6', JSON.stringify(db.timeAllocations));
+            localStorage.setItem('prime_workout_v6', db.workoutHours);
+            localStorage.setItem('prime_sleep_v6', db.sleepHours);
+            localStorage.setItem('prime_ideal_target_v6', db.idealStudyTarget);
+            localStorage.setItem('prime_daily_ref_v6', db.dailyReflection);
+            localStorage.setItem('prime_weekly_ref_v6', db.weeklyReflection);
+            
+            localStorage.setItem('prime_weekly_days_v6', JSON.stringify(db.weeklyDaysRecord));
+            localStorage.setItem('prime_monthly_v6', JSON.stringify(db.monthlyRecord));
+            localStorage.setItem('prime_lifetime_v6', JSON.stringify(db.lifetimeRecord));
+        }
+
+        // Workout, Sleep and Ideal Study Goal Handlers
+        btnSaveWorkout.addEventListener('click', () => {
+            const val = parseFloat(iptWorkoutHours.value);
+            if(!isNaN(val) && val >= 0) { db.workoutHours = val; commitToLocalStorage(); syncStateToDisplay(); alert("Workout data saved!"); }
+        });
+        btnSaveSleep.addEventListener('click', () => {
+            const val = parseFloat(iptSleepHours.value);
+            if(!isNaN(val) && val >= 0) { db.sleepHours = val; commitToLocalStorage(); syncStateToDisplay(); alert("Sleep data saved!"); }
+        });
+        btnSaveIdeal.addEventListener('click', () => {
+            const val = parseFloat(iptIdealTarget.value);
+            if(!isNaN(val) && val > 0) { 
+                db.idealStudyTarget = val; 
+                commitToLocalStorage(); 
+                updateGoalFeedbackStatus();
+                alert("Ideal study goal target updated!"); 
+            }
+        });
+
+        // Smart Adaptive Study Goal Check System
+        function updateGoalFeedbackStatus() {
+            const currentSeconds = db.timeAllocations.study + db.timeAllocations.revision + db.timeAllocations.writing;
+            const currentFocusHours = currentSeconds / 3600;
+            const targetHours = db.idealStudyTarget || 4.0;
+            
+            lblGoalStatus.className = 'goal-feedback-badge';
+
+            if (currentFocusHours === 0) {
+                lblGoalStatus.textContent = "❌ Goal Not Started Yet";
+                lblGoalStatus.classList.add('status-not-started');
+            } else if (currentFocusHours >= targetHours) {
+                lblGoalStatus.textContent = "👑 Goal Achieved! Well Done, Priyansh!";
+                lblGoalStatus.classList.add('status-achieved');
+            } else if (currentFocusHours >= (targetHours * 0.8)) {
+                lblGoalStatus.textContent = "✨ Almost Done! Just a little more!";
+                lblGoalStatus.classList.add('status-almost');
+            } else if (currentFocusHours >= (targetHours * 0.5)) {
+                lblGoalStatus.textContent = "🌓 Halfway There! Keep pushing!";
+                lblGoalStatus.classList.add('status-halfway');
+            } else {
+                lblGoalStatus.textContent = "🌱 Slow and steady progress ongoing...";
+                lblGoalStatus.classList.add('status-not-started');
+            }
+        }
+
+        // Reflection Actions
+        document.getElementById('btn-save-daily-ref').addEventListener('click', () => {
+            db.dailyReflection = txtDailyReflection.value.trim();
+            commitToLocalStorage(); alert("Daily reflection saved securely!");
+        });
+        document.getElementById('btn-save-weekly-ref').addEventListener('click', () => {
+            db.weeklyReflection = txtWeeklyReflection.value.trim();
+            commitToLocalStorage(); alert("Weekly reflection saved securely!");
+        });
+
+        function injectXP(amount) {
+            db.xp += amount;
+            if (db.xp >= 100) { db.xp -= 100; db.level += 1; triggerAudioAlert(587.33, 'sine', 0.3); }
+            commitToLocalStorage();
+            syncLevelGraphics();
+        }
+
+        function syncLevelGraphics() {
+            lblLevel.textContent = db.level;
+            lblXpRaw.textContent = db.xp;
+            fillXpMini.style.width = `${db.xp}%`;
+            if(db.level >= 10) { txtFlowerRank.textContent = "🌹 Sovereign Golden Bloom / स्वर्णिम पुष्प"; } 
+            else if(db.level >= 5) { txtFlowerRank.textContent = "🌸 Rising Blossom / खिलती कली अवस्था"; } 
+            else if(db.level >= 3) { txtFlowerRank.textContent = "🌿 Emerging Foliage / हरी पत्ती अवस्था"; } 
+            else { txtFlowerRank.textContent = "🌱 Sprout Status / अंकुर अवस्था"; }
+        }
+
+        function pushTaskItem() {
+            const text = iptDaily.value.trim();
+            const category = selTaskType.value;
+            if(!text) return;
+            db.dailyTasks.push({ id: Date.now().toString(), text: text, category: category, completed: false });
+            iptDaily.value = '';
+            commitToLocalStorage();
+            syncStateToDisplay();
+        }
+
+        btnAddDaily.addEventListener('click', pushTaskItem);
+        iptDaily.addEventListener('keypress', (e) => { if(e.key === 'Enter') pushTaskItem(); });
+
+        window.switchNodeState = function(id) {
+            db.dailyTasks = db.dailyTasks.map(t => {
+                if(t.id === id) {
+                    if(!t.completed) injectXP(t.category === 'academic' ? 30 : 20);
+                    return { ...t, completed: !t.completed };
+                }
+                return t;
+            });
+            commitToLocalStorage();
+            syncStateToDisplay();
+        }
+
+        window.removeNodeItem = function(id) {
+            db.dailyTasks = db.dailyTasks.filter(t => t.id !== id);
+            commitToLocalStorage();
+            syncStateToDisplay();
+        }
+
+        function drawListsToUI() {
+            boxDailyList.innerHTML = '';
+            let dDone = 0;
+            const totalTasks = db.dailyTasks.length;
+
+            if(totalTasks === 0) {
+                boxDailyList.innerHTML = `<p style="color:var(--text-muted); text-align:center; font-size:0.9rem; padding:1rem;">No tasks added yet. / koi karya nahi joda gaya.</p>`;
+                lblDashCompletionRate.textContent = "0% Complete"; lblBarPct.textContent = "0%"; fillTrackerLive.style.width = "0%";
+            } else {
+                db.dailyTasks.forEach(item => {
+                    if(item.completed) dDone++;
+                    const row = document.createElement('div');
+                    row.className = `task-card-node ${item.completed ? 'completed' : ''}`;
+                    const badgeHtml = item.category === 'academic' ? `<span class="type-badge badge-academic">🎓 Academic</span>` : `<span class="type-badge badge-personal">🌿 Personal</span>`;
+                    row.innerHTML = `
+                        <div style="display:flex; align-items:center; flex-wrap:wrap;">
+                            ${badgeHtml} <span style="word-break: break-all;">${escapeData(item.text)}</span>
+                        </div>
+                        <div class="node-actions" style="margin-top: 5px;">
+                            <button class="node-btn node-btn-check" onclick="window.switchNodeState('${item.id}')">${item.completed ? 'Undo' : 'Done'}</button>
+                            <button class="node-btn node-btn-delete" onclick="window.removeNodeItem('${item.id}')">✕</button>
+                        </div>
+                    `;
+                    boxDailyList.appendChild(row);
+                });
+                const calculatedPercentage = Math.round((dDone / totalTasks) * 100);
+                lblDashCompletionRate.textContent = `${calculatedPercentage}% Complete`; lblBarPct.textContent = `${calculatedPercentage}%`; fillTrackerLive.style.width = `${calculatedPercentage}%`;
+            }
+            lblDashDailyRatio.textContent = `${dDone}/${totalTasks}`;
+        }
+
+        // Analytics Engine Setup
+        function setupTabsSystem() {
+            const btnWeekly = document.getElementById('tab-weekly');
+            const btnMonthly = document.getElementById('tab-monthly');
+            const btnLifetime = document.getElementById('tab-lifetime');
+
+            btnWeekly.addEventListener('click', () => { switchTabMode('weekly', btnWeekly); });
+            btnMonthly.addEventListener('click', () => { switchTabMode('monthly', btnMonthly); });
+            btnLifetime.addEventListener('click', () => { switchTabMode('lifetime', btnLifetime); });
+        }
+
+        function switchTabMode(mode, activeBtn) {
+            currentActiveTab = mode;
+            document.querySelectorAll('.analytics-tabs button').forEach(b => b.classList.remove('active'));
+            activeBtn.classList.add('active');
+            renderAnalyticsGraph();
+        }
+
+        function renderAnalyticsGraph() {
+            const frame = document.getElementById('box-analytics-graph');
+            const historyList = document.getElementById('box-history-list');
+            const title = document.getElementById('lbl-graph-title');
+            frame.innerHTML = '';
+            historyList.innerHTML = '';
+
+            const currentFocusHours = parseFloat(((db.timeAllocations.study + db.timeAllocations.revision + db.timeAllocations.writing) / 3600).toFixed(2));
+
+            if (currentActiveTab === 'weekly') {
+                title.textContent = "📊 Weekly Performance Overview (Sunday - Saturday)";
+                
+                const currentWeekKey = sysTime.weekString;
+                let activeWeekMap = { ...db.weeklyDaysRecord[currentWeekKey] } || {};
+                
+                activeWeekMap[sysTime.dayName] = (activeWeekMap[sysTime.dayName] || 0) + currentFocusHours;
+                
+                const daysOrdered = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                let maxVal = 1;
+                daysOrdered.forEach(d => { if((activeWeekMap[d] || 0) > maxVal) maxVal = activeWeekMap[d]; });
+
+                daysOrdered.forEach(day => {
+                    const hVal = activeWeekMap[day] || 0;
+                    const pct = Math.min(Math.round((hVal / maxVal) * 100), 100);
+                    
+                    const barWrapper = document.createElement('div');
+                    barWrapper.className = 'graph-bar-wrapper';
+                    barWrapper.innerHTML = `
+                        <div class="graph-bar" style="height: ${pct || 5}%">
+                            <div class="graph-bar-value">${hVal.toFixed(1)}h</div>
+                        </div>
+                        <div class="graph-label">${day.substring(0,3)}</div>
+                    `;
+                    frame.appendChild(barWrapper);
+                });
+            } 
+            else if (currentActiveTab === 'monthly') {
+                title.textContent = "📊 Monthly Distribution Trends";
+                
+                let monthMap = { ...db.monthlyRecord };
+                monthMap[sysTime.monthString] = (monthMap[sysTime.monthString] || 0) + currentFocusHours;
+                
+                const keys = Object.keys(monthMap).sort().slice(-6); 
+                let maxVal = 1;
+                keys.forEach(k => { if(monthMap[k] > maxVal) maxVal = monthMap[k]; });
+
+                if(keys.length === 0) {
+                    frame.innerHTML = `<p style='color:var(--text-muted); margin:auto;'>No monthly data gathered yet.</p>`;
+                } else {
+                    keys.forEach(k => {
+                        const val = monthMap[k];
+                        const pct = Math.min(Math.round((val / maxVal) * 100), 100);
+                        const barWrapper = document.createElement('div');
+                        barWrapper.className = 'graph-bar-wrapper';
+                        barWrapper.innerHTML = `
+                            <div class="graph-bar" style="height: ${pct || 5}%">
+                                <div class="graph-bar-value">${val.toFixed(1)}h</div>
+                            </div>
+                            <div class="graph-label">${k}</div>
+                        `;
+                        frame.appendChild(barWrapper);
+                    });
+                }
+            } 
+            else if (currentActiveTab === 'lifetime') {
+                title.textContent = "📊 Lifetime Matrix Trend Line (Past 7 Days Logs)";
+                
+                let rawTimeline = { ...db.lifetimeRecord };
+                rawTimeline[sysTime.dateString] = {
+                    date: sysTime.dateString,
+                    focusHours: currentFocusHours,
+                    workoutHours: db.workoutHours,
+                    sleepHours: db.sleepHours,
+                    tasksDone: db.dailyTasks.filter(t => t.completed).length,
+                    tasksTotal: db.dailyTasks.length,
+                    reflection: db.dailyReflection
+                };
+
+                const timelineKeys = Object.keys(rawTimeline).sort().slice(-7); 
+                let maxVal = 1;
+                timelineKeys.forEach(k => { if(rawTimeline[k].focusHours > maxVal) maxVal = rawTimeline[k].focusHours; });
+
+                if(timelineKeys.length === 0) {
+                    frame.innerHTML = `<p style='color:var(--text-muted); margin:auto;'>No lifetime data structured yet.</p>`;
+                } else {
+                    timelineKeys.forEach(k => {
+                        const dayObj = rawTimeline[k];
+                        const pct = Math.min(Math.round((dayObj.focusHours / maxVal) * 100), 100);
+                        const barWrapper = document.createElement('div');
+                        barWrapper.className = 'graph-bar-wrapper';
+                        barWrapper.innerHTML = `
+                            <div class="graph-bar" style="height: ${pct || 5}%">
+                                <div class="graph-bar-value">${dayObj.focusHours.toFixed(1)}h</div>
+                            </div>
+                            <div class="graph-label">${k.substring(5)}</div>
+                        `;
+                        frame.appendChild(barWrapper);
+                    });
+                }
+            }
+
+            let fullChronologicalTimeline = { ...db.lifetimeRecord };
+            fullChronologicalTimeline[sysTime.dateString] = {
+                date: sysTime.dateString + " (Today)",
+                focusHours: currentFocusHours,
+                workoutHours: db.workoutHours,
+                sleepHours: db.sleepHours,
+                tasksDone: db.dailyTasks.filter(t => t.completed).length,
+                tasksTotal: db.dailyTasks.length,
+                reflection: db.dailyReflection
+            };
+
+            const sortedLogs = Object.keys(fullChronologicalTimeline).sort().reverse();
+            sortedLogs.forEach(logKey => {
+                const item = fullChronologicalTimeline[logKey];
+                const logRow = document.createElement('div');
+                logRow.className = 'history-item';
+                logRow.innerHTML = `
+                    <div class="history-item-top">
+                        <span style="color:var(--accent-lavender); font-weight:600;">${item.date}</span>
+                        <span style="color:var(--accent-rose);">⏱ Focus: ${item.focusHours.toFixed(1)}h</span>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-main); display:flex; gap:1rem;">
+                        <span>🏃 Workout: ${item.workoutHours}h</span>
+                        <span>😴 Sleep: ${item.sleepHours}h</span>
+                        <span>🎯 Tasks: ${item.tasksDone}/${item.tasksTotal}</span>
+                    </div>
+                    ${item.reflection ? `<div style="font-size:0.75rem; color:var(--accent-mint); font-style:italic; margin-top:3px;">Ref: "${item.reflection}"</div>` : ''}
+                `;
+                historyList.appendChild(logRow);
+            });
+        }
+
+        document.getElementById('btn-toggle-history').addEventListener('click', () => {
+            const list = document.getElementById('box-history-list');
+            list.style.display = (list.style.display === 'block') ? 'none' : 'block';
+        });
+
+        function configureHabitTriggers() {
+            document.querySelectorAll('.toggle-trigger-circle').forEach(trigger => {
+                const key = trigger.getAttribute('data-habit');
+                if(db.habits[key]) trigger.classList.add('checked');
+                trigger.addEventListener('click', () => {
+                    db.habits[key] = !db.habits[key];
+                    if(db.habits[key]) { trigger.classList.add('checked'); injectXP(10); } 
+                    else { trigger.classList.remove('checked'); }
+                    commitToLocalStorage();
+                });
+            });
+        }
+
+        // Custom Time Engine Core Implementation
+        let clockInterval = null; 
+        let clockSecondsLeft = 25 * 60; 
+
+        function initializeTimerSystem() {
+            const display = document.getElementById('lbl-timer-clock');
+            const toggleBtn = document.getElementById('btn-timer-toggle');
+            const resetBtn = document.getElementById('btn-timer-reset');
+            const iptCustomMinutes = document.getElementById('ipt-custom-minutes');
+            const btnApplyCustomTime = document.getElementById('btn-apply-custom-time');
+
+            btnApplyCustomTime.addEventListener('click', () => {
+                const customMins = parseInt(iptCustomMinutes.value);
+                if (!isNaN(customMins) && customMins > 0 && customMins <= 180) {
+                    clearInterval(clockInterval);
+                    clockInterval = null;
+                    toggleBtn.textContent = 'Start Focus / शुरू करें';
+                    clockSecondsLeft = customMins * 60;
+                    refreshTimerFace();
+                } else {
+                    alert("Please enter minutes between 1 and 180!");
+                }
+            });
+
+            toggleBtn.addEventListener('click', () => {
+                if(clockInterval) {
+                    clearInterval(clockInterval); clockInterval = null;
+                    toggleBtn.textContent = 'Resume / fir shuru karein';
+                } else {
+                    toggleBtn.textContent = 'Pause / rokein';
+                    clockInterval = setInterval(() => {
+                        clockSecondsLeft--;
+                        
+                        const activeMode = selFocusMode.value;
+                        db.timeAllocations[activeMode]++;
+                        if(db.timeAllocations[activeMode] % 60 === 0) { 
+                            injectXP(3); 
+                            renderAnalyticsGraph(); 
+                        }
+                        
+                        if(clockSecondsLeft <= 0) {
+                            clearInterval(clockInterval); clockInterval = null;
+                            triggerAudioAlert(493.88, 'triangle', 0.5);
+                            alert("Time is up! Task session finished.");
+                            toggleBtn.textContent = 'Start Focus / शुरू करें';
+                            clockSecondsLeft = parseInt(iptCustomMinutes.value) * 60;
+                        }
+                        refreshTimerFace();
+                    }, 1000);
+                }
+            });
+
+            resetBtn.addEventListener('click', () => {
+                clearInterval(clockInterval);
+                clockInterval = null;
+                toggleBtn.textContent = 'Start Focus / शुरू करें';
+                clockSecondsLeft = parseInt(iptCustomMinutes.value) * 60;
+                refreshTimerFace();
+            });
+
+            function refreshTimerFace() {
+                const mins = Math.floor(clockSecondsLeft / 60).toString().padStart(2, '0');
+                const secs = (clockSecondsLeft % 60).toString().padStart(2, '0');
+                display.textContent = `${mins}:${secs}`;
+                
+                const sumSeconds = db.timeAllocations.study + db.timeAllocations.revision + db.timeAllocations.writing;
+                lblDashHours.textContent = `${(sumSeconds / 3600).toFixed(1)}h`;
+                
+                lblTimeStudy.textContent = `${Math.floor(db.timeAllocations.study / 60)} mins`;
+                lblTimeRev.textContent = `${Math.floor(db.timeAllocations.revision / 60)} mins`;
+                lblTimeWrite.textContent = `${Math.floor(db.timeAllocations.writing / 60)} mins`;
+
+                const maxAlloc = Math.max(db.timeAllocations.study, db.timeAllocations.revision, db.timeAllocations.writing, 1);
+                fillStudy.style.width = `${(db.timeAllocations.study / maxAlloc) * 100}%`;
+                fillRev.style.width = `${(db.timeAllocations.revision / maxAlloc) * 100}%`;
+                fillWrite.style.width = `${(db.timeAllocations.writing / maxAlloc) * 100}%`;
+
+                updateGoalFeedbackStatus();
+            }
+            refreshTimerFace();
+        }
+
+        function syncStateToDisplay() { 
+            drawListsToUI(); 
+            syncLevelGraphics(); 
+            lblDashWorkout.textContent = `${db.workoutHours.toFixed(1)}h`;
+            lblDashSleep.textContent = `${db.sleepHours.toFixed(1)}h`;
+            iptWorkoutHours.value = db.workoutHours;
+            iptSleepHours.value = db.sleepHours;
+            updateGoalFeedbackStatus();
+        }
+
+        function setupBackupUtility() {
+            document.getElementById('btn-copy-backup').addEventListener('click', () => {
+                const rawStateString = btoa(unescape(encodeURIComponent(JSON.stringify(db))));
+                navigator.clipboard.writeText(rawStateString);
+                alert("Backup code copied! / backup code copy ho gaya hai!");
+            });
+            document.getElementById('btn-wipe-data').addEventListener('click', () => {
+                if(confirm("Are you sure? / kya aap sara data delete karna chahte hain?")) { localStorage.clear(); location.reload(); }
+            });
+        }
+
+        function triggerAudioAlert(freq, waveType, intensity) {
+            try {
+                const context = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = context.createOscillator(); const nodeGain = context.createGain();
+                osc.type = waveType; osc.frequency.setValueAtTime(freq, context.currentTime);
+                nodeGain.gain.setValueAtTime(intensity, context.currentTime);
+                nodeGain.gain.exponentialRampToValueAtTime(0.00001, context.currentTime + 0.8);
+                osc.connect(nodeGain); nodeGain.connect(context.destination);
+                osc.start(); osc.stop(context.currentTime + 0.8);
+            } catch (err) {}
+        }
+
+        function initFloraCanvas() {
+            const canvas = document.getElementById('petal-canvas'); const context = canvas.getContext('2d'); let systemPills = [];
+            function handleCanvasResize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+            window.addEventListener('resize', handleCanvasResize); handleCanvasResize();
+
+            class FloatingOrganicNode {
+                constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * -canvas.height; this.radius = Math.random() * 2 + 1; this.velocity = Math.random() * 0.5 + 0.2; this.angleVariation = Math.random() * 360; }
+                process() { this.y += this.velocity; this.angleVariation += 0.005; this.x += Math.sin(this.angleVariation) * 0.3; if(this.y > canvas.height) { this.y = -20; this.x = Math.random() * canvas.width; } }
+                render() { context.beginPath(); context.fillStyle = 'rgba(180, 151, 255, 0.08)'; context.arc(this.x, this.y, this.radius, 0, Math.PI * 2); context.fill(); }
+            }
+            for(let index = 0; index < 25; index++) systemPills.push(new FloatingOrganicNode());
+            function graphicsExecutionLoop() { context.clearRect(0, 0, canvas.width, canvas.height); systemPills.forEach(p => { p.process(); p.render(); }); requestAnimationFrame(graphicsExecutionLoop); }
+            graphicsExecutionLoop();
+        }
+
+        function escapeData(text) { return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+        function setupScrollSpy() {
+            const links = document.querySelectorAll('.nav-link');
+            window.addEventListener('scroll', () => {
+                let sectionName = 'hero';
+                document.querySelectorAll('section').forEach(s => { if(window.scrollY >= (s.offsetTop - 140)) sectionName = s.getAttribute('id'); });
+                links.forEach(l => { l.classList.remove('active'); if(l.getAttribute('href') === `#${sectionName}`) l.classList.add('active'); });
+            });
+        }
+    </script>
+</body>
+</html>
